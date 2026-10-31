@@ -6,7 +6,7 @@ const issueSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Issue title is required'],
       trim: true,
-      maxlength: [120, 'Title cannot exceed 120 characters']
+      maxlength: [140, 'Title cannot exceed 140 characters']
     },
     description: {
       type: String,
@@ -48,15 +48,21 @@ const issueSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: ''
+    },
+    upvotes: {
+      type: Number,
+      default: 1
+    },
+    reporterName: {
+      type: String,
+      default: 'Anonymous Citizen'
     }
   },
   {
-    timestamps: true // adds createdAt and updatedAt automatically
+    timestamps: true
   }
 );
 
-// Index for high-performance dashboard queries during demos
 issueSchema.index({ status: 1, urgency: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Issue', issueSchema);
-

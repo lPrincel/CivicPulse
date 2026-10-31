@@ -4,11 +4,19 @@ const {
   triageIssueHandler,
   createIssue,
   getIssues,
-  updateIssueStatus
+  updateIssueStatus,
+  upvoteIssue,
+  seedDatabase
 } = require('../controllers/issueController');
 
 // AI Triage Route
 router.post('/triage', triageIssueHandler);
+
+// Demo Seed Route
+router.post('/seed', seedDatabase);
+
+// Upvote Route
+router.post('/:id/upvote', upvoteIssue);
 
 // CRUD Routes
 router.route('/')
@@ -18,4 +26,3 @@ router.route('/')
 router.patch('/:id/status', updateIssueStatus);
 
 module.exports = router;
-
