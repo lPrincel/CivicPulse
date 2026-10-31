@@ -64,3 +64,25 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.5);
 }
+
+/* Custom Leaflet Map & Popup Styling */
+.civicpulse-leaflet-popup .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  padding: 0;
+  overflow: hidden;
+}
+.civicpulse-leaflet-popup .leaflet-popup-content {
+  margin: 0;
+  line-height: inherit;
+}
+.civicpulse-leaflet-popup .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.96);
+}
+.custom-leaflet-marker {
+  background: transparent !important;
+  border: none !important;
+}

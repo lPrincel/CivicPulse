@@ -78,7 +78,14 @@ If an API key is missing or an external rate-limit occurs during a live hackatho
 - Authenticated state managed via signed JWT-style tokens stored in `localStorage`.
 - **⚡ Quick Sample Logins:** One-click demo logins for both roles directly on the auth page.
 
-### 🌙 4. Dark Mode & Audio Feedback (Hackathon Polish)
+### 🗺️ 4. Real-Time OpenStreetMap GIS Mapping (Zero API Key)
+- Integrated **Leaflet.js & OpenStreetMap** (100% free, zero API key, no credit card required).
+- **Auto-GPS Geolocation:** Automatically detects and flies the map camera to the citizen's real coordinates.
+- **Global City Quick-Switcher:** One-click fly-through across major cities (*New Delhi, Mumbai, Bengaluru, New York, London, San Francisco*).
+- **Adaptive Dark / Light Tiles:** Automatically serves **CARTO Dark Matter** tiles in dark mode and **OpenStreetMap Standard** in light mode.
+- **Pulsing Emergency Blips & Rich Popups:** Emergency hazard markers pulse with glowing rings. Clicking any pin displays a rich preview popup with photo, status, and department.
+
+### 🌙 5. Dark Mode & Audio Feedback (Hackathon Polish)
 - Full Dark / Light theme toggle with persistent storage in `localStorage`.
 - **Web Audio API Chimes:** Native browser synthesizer (zero external MP3 assets) playing celebratory major triad arpeggios when tickets are resolved and siren frequencies on emergency logs.
 - Animated slide-in Toast notification system.
@@ -90,6 +97,7 @@ If an API key is missing or an external rate-limit occurs during a live hackatho
 | Layer | Technologies |
 | :--- | :--- |
 | **Frontend** | React 19, Vite, Tailwind CSS v4, Lucide React, Axios, Web Audio API |
+| **GIS & Mapping** | Leaflet.js 1.9.4, OpenStreetMap, CARTO Dark Matter (Zero API Key) |
 | **Backend** | Node.js, Express 5, Mongoose 9, MongoDB Atlas, Node Crypto (PBKDF2) |
 | **AI Engine** | Google Gen AI SDK (`@google/genai`), Gemini 2.5 Flash |
 | **Architecture** | Monorepo structure (`client/` and `server/`), REST API, Contract-Driven |

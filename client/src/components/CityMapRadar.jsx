@@ -1,20 +1,28 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   MapPin, 
-  Flame, 
-  Sparkles, 
+  Crosshair, 
   Layers, 
-  Navigation, 
-  ShieldAlert, 
-  Zap, 
-  Droplet, 
-  Trash2, 
-  AlertTriangle,
-  ZoomIn,
-  ZoomOut,
-  Crosshair
+  Sparkles, 
+  AlertTriangle, 
+  Compass, 
+  Radio, 
+  ExternalLink,
+  ChevronDown,
+  Globe2
 } from 'lucide-react';
 
+const POPULAR_CITIES = [
+  { name: 'My Current Location (GPS)', lat: null, lng: null },
+  { name: 'New Delhi, India', lat: 28.6139, lng: 77.2090 },
+  { name: 'Mumbai, India', lat: 19.0760, lng: 72.8777 },
+  { name: 'Bengaluru, India', lat: 12.9716, lng: 77.5946 },
+  { name: 'New York City, USA', lat: 40.7128, lng: -74.0060 },
+  { name: 'London, UK', lat: 51.5074, lng: -0.1278 },
+  { name: 'San Francisco, USA', lat: 37.7749, lng: -122.4194 }
+];
+
+// Color palette for category pins
 const CATEGORY_COLORS = {
   Electricity: '#f59e0b',
   Water: '#3b82f6',
@@ -23,137 +31,273 @@ const CATEGORY_COLORS = {
   Safety: '#8b5cf6'
 };
 
-// Simulated city grid coordinates for realistic visual positioning
-const MOCK_MAP_PINS = [
-  { x: 28, y: 35, category: 'Electricity', urgency: 'Emergency' },
-  { x: 62, y: 25, category: 'Water', urgency: 'Emergency' },
-  { x: 45, y: 55, category: 'Roads', urgency: 'High' },
-  { x: 78, y: 65, category: 'Sanitation', urgency: 'Medium' },
-  { x: 20, y: 75, category: 'Safety', urgency: 'Medium' },
-  { x: 85, y: 40, category: 'Electricity', urgency: 'Low' },
-  { x: 50, y: 82, category: 'Roads', urgency: 'High' },
-  { x: 38, y: 18, category: 'Sanitation', urgency: 'High' }
-];
+export default function CityMapRadar({ issues = [] }) {
+  const mapContainerRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markersLayerRef = useRef(null);
 
-export default function CityMapRadar({ issues = [], onSelectIssue }) {
-  const [selectedPinIndex, setSelectedPinIndex] = useState(0);
-  const [zoomLevel, setZoomLevel] = useState(1);
+  // Auto-detect dark mode and re-theme tiles dynamically
+  const [isDark, setIsDark] = useState(() => {
+    return typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : true;
+  });
 
-  const selectedIssue = issues[selectedPinIndex] || issues[0];
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  const [currentCityName, setCurrentCityName] = useState('My Current Location (GPS)');
+  const [selectedIssue, setSelectedIssue] = useState(issues[0] || null);
+  const [centerCoords, setCenterCoords] = useState([28.6139, 77.2090]); // Default fallback
+  const [isDetectingGPS, setIsDetectingGPS] = useState(false);
+
+  // Initialize GPS on mount
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      setIsDetectingGPS(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords = [pos.coords.latitude, pos.coords.longitude];
+          setCenterCoords(coords);
+          setIsDetectingGPS(false);
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.flyTo(coords, 14, { duration: 1.5 });
+          }
+        },
+        () => {
+          setIsDetectingGPS(false);
+        },
+        { timeout: 4000 }
+      );
+    }
+  }, []);
+
+  // Initialize Leaflet Map
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    if (typeof window === 'undefined' || !window.L) return;
+
+    const L = window.L;
+
+    // Destroy existing instance if any
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
+
+    // Create map instance
+    const map = L.map(mapContainerRef.current, {
+      center: centerCoords,
+      zoom: 13,
+      zoomControl: false // custom position
+    });
+    mapInstanceRef.current = map;
+
+    // Add zoom control at top-right
+    L.control.zoom({ position: 'topright' }).addTo(map);
+
+    // Pick Tile Layer based on Dark Mode
+    // CARTO Dark Matter for Dark mode, OpenStreetMap Standard for Light mode
+    const tileUrl = isDark
+      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+    const attribution = isDark
+      ? '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+
+    L.tileLayer(tileUrl, {
+      maxZoom: 19,
+      subdomains: 'abcd',
+      attribution
+    }).addTo(map);
+
+    // Layer group for issue markers
+    const markersGroup = L.layerGroup().addTo(map);
+    markersLayerRef.current = markersGroup;
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [isDark]);
+
+  // Update Markers when issues or center change
+  useEffect(() => {
+    if (!mapInstanceRef.current || !markersLayerRef.current || !window.L) return;
+
+    const L = window.L;
+    markersLayerRef.current.clearLayers();
+
+    // Scatter offsets for demo issues around the active center
+    const offsets = [
+      [0.008, 0.012],
+      [-0.011, 0.009],
+      [0.014, -0.015],
+      [-0.007, -0.011],
+      [0.018, 0.004],
+      [-0.016, -0.006],
+      [0.005, -0.019],
+      [-0.003, 0.018]
+    ];
+
+    issues.forEach((issue, index) => {
+      const offset = offsets[index % offsets.length];
+      const issueLat = centerCoords[0] + offset[0];
+      const issueLng = centerCoords[1] + offset[1];
+
+      const isEmergency = issue.urgency === 'Emergency';
+      const isHigh = issue.urgency === 'High';
+      const color = CATEGORY_COLORS[issue.category] || '#3b82f6';
+
+      // Custom animated HTML Marker
+      const markerHtml = `
+        <div class="relative flex items-center justify-center cursor-pointer group">
+          ${isEmergency ? '<div class="absolute -inset-2 rounded-full bg-red-500/50 animate-ping"></div>' : ''}
+          <div style="background-color: ${color};" class="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-lg ring-2 ring-white dark:ring-slate-900 transition-transform group-hover:scale-125">
+            ${isEmergency ? '!' : '📍'}
+          </div>
+        </div>
+      `;
+
+      const customIcon = L.divIcon({
+        html: markerHtml,
+        className: 'custom-leaflet-marker',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+
+      const marker = L.marker([issueLat, issueLng], { icon: customIcon });
+
+      // Rich interactive Popup
+      const popupHtml = `
+        <div class="p-2 min-w-[210px] font-sans text-slate-900">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <span style="background-color: ${color}20; color: ${color};" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-current">
+              ${issue.category}
+            </span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${isEmergency ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'}">
+              ${issue.urgency}
+            </span>
+          </div>
+          ${issue.imageUrl ? `<img src="${issue.imageUrl}" class="w-full h-20 object-cover rounded-lg mb-2" />` : ''}
+          <h4 class="font-bold text-xs leading-snug mb-1">${issue.title}</h4>
+          <p class="text-[11px] text-slate-500 mb-1 leading-relaxed line-clamp-2">${issue.description}</p>
+          <div class="text-[10px] text-slate-400 font-medium">📍 ${issue.location}</div>
+        </div>
+      `;
+
+      marker.bindPopup(popupHtml, {
+        className: 'civicpulse-leaflet-popup'
+      });
+
+      marker.on('click', () => {
+        setSelectedIssue(issue);
+      });
+
+      markersLayerRef.current.addLayer(marker);
+    });
+  }, [issues, centerCoords]);
+
+  // Handle City Dropdown Change
+  const handleCitySelect = (city) => {
+    setCurrentCityName(city.name);
+
+    if (city.lat && city.lng) {
+      const coords = [city.lat, city.lng];
+      setCenterCoords(coords);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.flyTo(coords, 13, { duration: 1.8 });
+      }
+    } else {
+      // Re-trigger GPS
+      if ('geolocation' in navigator) {
+        setIsDetectingGPS(true);
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const coords = [pos.coords.latitude, pos.coords.longitude];
+            setCenterCoords(coords);
+            setIsDetectingGPS(false);
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.flyTo(coords, 14, { duration: 1.5 });
+            }
+          },
+          () => setIsDetectingGPS(false)
+        );
+      }
+    }
+  };
+
+  const handleRecenter = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo(centerCoords, 14, { duration: 1.2 });
+    }
+  };
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-slate-900 shadow-2xl text-white">
-      {/* Map Top Overlay Controls */}
-      <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
-        <div className="px-3.5 py-1.5 rounded-xl bg-slate-950/80 backdrop-blur-md border border-white/10 text-xs font-bold flex items-center gap-2 shadow-lg">
+      {/* Top Overlay Controls: City Selector & Live GIS Badge */}
+      <div className="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-2">
+        {/* City Switcher Dropdown */}
+        <div className="relative">
+          <select
+            value={currentCityName}
+            onChange={(e) => {
+              const selected = POPULAR_CITIES.find(c => c.name === e.target.value);
+              if (selected) handleCitySelect(selected);
+            }}
+            className="px-3.5 py-2 pr-8 rounded-xl bg-slate-950/85 backdrop-blur-md border border-white/15 text-xs font-bold text-white shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none"
+          >
+            {POPULAR_CITIES.map((city) => (
+              <option key={city.name} value={city.name} className="bg-slate-900 text-white">
+                {city.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-3 pointer-events-none" />
+        </div>
+
+        {/* Live OpenStreetMap GIS Badge */}
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/85 backdrop-blur-md border border-white/15 text-xs font-bold shadow-xl">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-          <span>Hyperlocal City GIS Grid</span>
-          <span className="text-[10px] text-slate-400 px-1.5 py-0.5 rounded-md bg-white/10">Active Radar</span>
+          <span>OpenStreetMap GIS</span>
+          <span className="text-[10px] text-slate-400 px-1.5 py-0.5 rounded-md bg-white/10">Zero API Key</span>
         </div>
       </div>
 
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5">
+      {/* Recenter Button (Top-Right) */}
+      <div className="absolute top-4 right-14 z-20">
         <button
-          onClick={() => setZoomLevel((z) => Math.min(1.4, z + 0.1))}
-          className="p-2 rounded-xl bg-slate-950/80 hover:bg-slate-800 backdrop-blur-md border border-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
-          title="Zoom In"
+          onClick={handleRecenter}
+          className="p-2.5 rounded-xl bg-slate-950/85 hover:bg-slate-800 backdrop-blur-md border border-white/15 text-white transition-colors cursor-pointer shadow-xl flex items-center gap-1.5 text-xs font-bold"
+          title="Recenter Map"
         >
-          <ZoomIn className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => setZoomLevel((z) => Math.max(0.8, z - 0.1))}
-          className="p-2 rounded-xl bg-slate-950/80 hover:bg-slate-800 backdrop-blur-md border border-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
-          title="Zoom Out"
-        >
-          <ZoomOut className="w-4 h-4" />
+          <Crosshair className={`w-4 h-4 text-blue-400 ${isDetectingGPS ? 'animate-spin' : ''}`} />
+          <span className="hidden md:inline">Recenter</span>
         </button>
       </div>
 
-      {/* Stylized Dark Vector City Map Background */}
+      {/* The Real Leaflet OpenStreetMap Container */}
       <div 
-        className="relative w-full h-[380px] sm:h-[440px] bg-slate-950 overflow-hidden select-none transition-transform duration-300"
-        style={{ transform: `scale(${zoomLevel})` }}
-      >
-        {/* Subtle Map Vector Roads & River */}
-        <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-          {/* River */}
-          <path d="M 0,220 C 300,180 500,280 800,210 C 1100,140 1300,240 1600,190" fill="none" stroke="#3b82f6" strokeWidth="28" strokeLinecap="round" opacity="0.3" />
-          <path d="M 0,220 C 300,180 500,280 800,210 C 1100,140 1300,240 1600,190" fill="none" stroke="#60a5fa" strokeWidth="8" strokeLinecap="round" opacity="0.5" />
-          
-          {/* Major Highways */}
-          <line x1="100" y1="0" x2="600" y2="500" stroke="#475569" strokeWidth="6" strokeDasharray="10 4" />
-          <line x1="0" y1="120" x2="1600" y2="160" stroke="#475569" strokeWidth="8" />
-          <line x1="0" y1="360" x2="1600" y2="340" stroke="#475569" strokeWidth="6" />
-          <line x1="400" y1="0" x2="400" y2="600" stroke="#334155" strokeWidth="5" />
-          <line x1="850" y1="0" x2="850" y2="600" stroke="#334155" strokeWidth="5" />
-          
-          {/* Grid Blocks */}
-          <rect x="180" y="40" width="160" height="90" fill="#1e293b" rx="8" opacity="0.5" />
-          <rect x="440" y="50" width="180" height="80" fill="#1e293b" rx="8" opacity="0.4" />
-          <rect x="220" y="270" width="140" height="120" fill="#1e293b" rx="8" opacity="0.4" />
-          <rect x="480" y="260" width="220" height="90" fill="#1e293b" rx="8" opacity="0.5" />
-          <rect x="740" y="80" width="180" height="110" fill="#1e293b" rx="8" opacity="0.4" />
-          <rect x="750" y="250" width="200" height="120" fill="#1e293b" rx="8" opacity="0.5" />
-        </svg>
+        ref={mapContainerRef} 
+        className="w-full h-[420px] sm:h-[480px] z-10 select-none bg-slate-950"
+      />
 
-        {/* Ambient Grid overlay */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-40 pointer-events-none"></div>
-
-        {/* Pulsing Radar Ring Sweep */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border border-blue-500/20 pointer-events-none animate-ping duration-1000"></div>
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full border border-blue-500/30 pointer-events-none"></div>
-
-        {/* Interactive Hazard Pinned Markers */}
-        {issues.map((issue, index) => {
-          const pinPos = MOCK_MAP_PINS[index % MOCK_MAP_PINS.length];
-          const isSelected = selectedPinIndex === index;
-          const isEmergency = issue.urgency === 'Emergency';
-          const isHigh = issue.urgency === 'High';
-          
-          const markerColor = isEmergency ? 'bg-red-500' : isHigh ? 'bg-amber-500' : 'bg-blue-500';
-
-          return (
-            <div
-              key={issue._id || index}
-              onClick={() => {
-                setSelectedPinIndex(index);
-                if (onSelectIssue) onSelectIssue(issue);
-              }}
-              style={{ left: `${pinPos.x}%`, top: `${pinPos.y}%` }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300 z-10 ${
-                isSelected ? 'scale-125 z-30' : 'hover:scale-115'
-              }`}
-            >
-              {/* Outer pulsing ring for emergency */}
-              {isEmergency && (
-                <div className="absolute -inset-2 rounded-full bg-red-500/40 animate-ping"></div>
-              )}
-
-              {/* Pin Icon / Marker Pill */}
-              <div className={`relative px-2 py-1 rounded-full text-[10px] font-bold text-white shadow-xl flex items-center gap-1 border border-white/20 backdrop-blur-md transition-all ${
-                isSelected 
-                  ? 'bg-blue-600 ring-4 ring-blue-500/40 ring-offset-2 ring-offset-slate-950' 
-                  : isEmergency 
-                  ? 'bg-red-600 ring-2 ring-red-500/50' 
-                  : 'bg-slate-900/90 hover:bg-slate-800'
-              }`}>
-                <span className={`w-2 h-2 rounded-full ${markerColor}`}></span>
-                <span className="hidden sm:inline-block max-w-[90px] truncate">{issue.category}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Selected Hazard Interactive Drawer at Bottom */}
+      {/* Selected Incident Drawer at Bottom */}
       {selectedIssue && (
-        <div className="p-4 sm:p-5 bg-slate-950/95 border-t border-white/10 backdrop-blur-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 bg-slate-950/95 border-t border-white/10 backdrop-blur-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 z-20 relative">
           <div className="flex items-start sm:items-center gap-3.5">
             {selectedIssue.imageUrl && (
               <img 
                 src={selectedIssue.imageUrl} 
                 alt="Hazard preview" 
-                className="w-14 h-14 rounded-xl object-cover shrink-0 border border-white/15" 
+                className="w-14 h-14 rounded-xl object-cover shrink-0 border border-white/15 shadow-sm" 
               />
             )}
             <div className="space-y-1">
@@ -168,8 +312,8 @@ export default function CityMapRadar({ issues = [], onSelectIssue }) {
                   {selectedIssue.urgency}
                 </span>
 
-                <span className="text-xs text-slate-400 font-semibold">{selectedIssue.category}</span>
-                <span className="text-[11px] text-slate-500">• {selectedIssue.status}</span>
+                <span className="text-xs text-slate-300 font-bold">{selectedIssue.category}</span>
+                <span className="text-[11px] text-slate-400">• {selectedIssue.status}</span>
               </div>
 
               <h4 className="text-sm font-bold text-white leading-snug line-clamp-1">
