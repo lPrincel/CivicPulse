@@ -88,3 +88,4 @@ export const initialMockIssues = [
     createdAt: new Date(Date.now() - 1000 * 60 * 900).toISOString()
   }
 ];
+

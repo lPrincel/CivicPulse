@@ -420,3 +420,4 @@ function IssueCard({ issue, onStatusChange }) {
     </div>
   );
 }
+

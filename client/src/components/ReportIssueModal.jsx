@@ -272,3 +272,4 @@ export default function ReportIssueModal({ isOpen, onClose, onSubmit, onTriage }
     </div>
   );
 }
+
