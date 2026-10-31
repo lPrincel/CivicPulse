@@ -284,7 +284,7 @@ export default function AuthPage({ onAuthSuccess, isDark, onToggleDark }) {
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>One-Click Hackathon Evaluator Login:</span>
+                <span>Quick Sample Logins (One-Click Demo):</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -320,3 +320,4 @@ export default function AuthPage({ onAuthSuccess, isDark, onToggleDark }) {
     </div>
   );
 }
+

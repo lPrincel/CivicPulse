@@ -11,7 +11,9 @@ const DEFAULT_SAMPLE_ISSUES = [
     location: '402 Oak Street (Corner of 4th Ave)',
     status: 'Reported',
     upvotes: 18,
-    reporterName: 'Sarah Jenkins',
+    reporterName: 'Jane Doe',
+    reporterEmail: 'citizen@civicpulse.org',
+    imageUrl: 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&w=600&q=80',
     aiSummary: 'Critical electrical hazard adjacent to school zone. Immediate power company isolation and emergency crew dispatch dispatched.'
   },
   {
@@ -23,6 +25,8 @@ const DEFAULT_SAMPLE_ISSUES = [
     status: 'In Progress',
     upvotes: 12,
     reporterName: 'Marcus Vance',
+    reporterEmail: 'marcus@example.com',
+    imageUrl: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?auto=format&fit=crop&w=600&q=80',
     aiSummary: 'Major utility rupture causing infrastructure damage and transit disruption. Water department valve shutdown active.'
   },
   {
@@ -33,7 +37,9 @@ const DEFAULT_SAMPLE_ISSUES = [
     location: 'Westbound Highway 9 Exit 12 Ramp',
     status: 'Reported',
     upvotes: 9,
-    reporterName: 'Carlos Rivera',
+    reporterName: 'Jane Doe',
+    reporterEmail: 'citizen@civicpulse.org',
+    imageUrl: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80',
     aiSummary: 'High-speed roadway defect with confirmed vehicle damage incidents. Road maintenance crew prioritized for asphalt patching.'
   },
   {
@@ -45,6 +51,8 @@ const DEFAULT_SAMPLE_ISSUES = [
     status: 'In Progress',
     upvotes: 5,
     reporterName: 'Priya Sharma',
+    reporterEmail: 'priya@example.com',
+    imageUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=600&q=80',
     aiSummary: 'Sanitation violation and health compliance risk. Department of Public Works route scheduled for pickup.'
   },
   {
@@ -56,6 +64,8 @@ const DEFAULT_SAMPLE_ISSUES = [
     status: 'Reported',
     upvotes: 4,
     reporterName: 'David Kim',
+    reporterEmail: 'david@example.com',
+    imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80',
     aiSummary: 'Pedestrian right-of-way obstruction. Parks & Recreation arborist crew ticket generated for removal.'
   },
   {
@@ -67,6 +77,8 @@ const DEFAULT_SAMPLE_ISSUES = [
     status: 'Resolved',
     upvotes: 6,
     reporterName: 'Elena Rostova',
+    reporterEmail: 'elena@example.com',
+    imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
     aiSummary: 'Routine illumination failure. Public works municipal electrician replaced LED fixture and verified circuit.'
   },
   {
@@ -77,7 +89,9 @@ const DEFAULT_SAMPLE_ISSUES = [
     location: '512 Riverview Promenade',
     status: 'Reported',
     upvotes: 11,
-    reporterName: 'Alex Morgan',
+    reporterName: 'Jane Doe',
+    reporterEmail: 'citizen@civicpulse.org',
+    imageUrl: '',
     aiSummary: 'Pedestrian and cyclist safety hazard. Immediate barricade placement and grate replacement required.'
   },
   {
@@ -89,6 +103,8 @@ const DEFAULT_SAMPLE_ISSUES = [
     status: 'In Progress',
     upvotes: 14,
     reporterName: 'Maya Lin',
+    reporterEmail: 'maya@example.com',
+    imageUrl: '',
     aiSummary: 'Environmental contamination alert. Environmental protection agency notified for containment and soil sampling.'
   }
 ];
@@ -129,7 +145,18 @@ const triageIssueHandler = async (req, res) => {
  */
 const createIssue = async (req, res) => {
   try {
-    const { title, description, category, urgency, location, aiSummary, status, reporterName } = req.body;
+    const { 
+      title, 
+      description, 
+      category, 
+      urgency, 
+      location, 
+      aiSummary, 
+      status, 
+      reporterName, 
+      reporterEmail,
+      imageUrl 
+    } = req.body;
 
     if (!description || !location) {
       return res.status(400).json({
@@ -160,6 +187,8 @@ const createIssue = async (req, res) => {
       aiSummary: finalAiSummary || '',
       status: status || 'Reported',
       reporterName: reporterName || 'Anonymous Citizen',
+      reporterEmail: reporterEmail || '',
+      imageUrl: imageUrl || '',
       upvotes: 1
     });
 
@@ -182,12 +211,13 @@ const createIssue = async (req, res) => {
  */
 const getIssues = async (req, res) => {
   try {
-    const { status, category, urgency, search } = req.query;
+    const { status, category, urgency, search, reporterEmail } = req.query;
     const filter = {};
 
     if (status) filter.status = status;
     if (category) filter.category = category;
     if (urgency) filter.urgency = urgency;
+    if (reporterEmail) filter.reporterEmail = reporterEmail;
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -267,23 +297,40 @@ const updateIssueStatus = async (req, res) => {
 };
 
 /**
- * @desc   Upvote an issue (Community Echo)
+ * @desc   Upvote an issue with dynamic community escalation & toggle
  * @route  POST /api/issues/:id/upvote
  */
 const upvoteIssue = async (req, res) => {
   try {
     const { id } = req.params;
-    const updated = await Issue.findByIdAndUpdate(
-      id,
-      { $inc: { upvotes: 1 } },
-      { new: true }
-    );
+    const { decrement } = req.body || {};
 
-    if (!updated) {
+    const issue = await Issue.findById(id);
+    if (!issue) {
       return res.status(404).json({ success: false, error: 'Issue not found' });
     }
 
-    return res.status(200).json({ success: true, data: updated });
+    if (decrement) {
+      issue.upvotes = Math.max(1, (issue.upvotes || 1) - 1);
+    } else {
+      issue.upvotes = (issue.upvotes || 0) + 1;
+
+      // Dynamic Urgency Escalation: When multiple community members echo the hazard!
+      if (issue.upvotes >= 10 && issue.urgency === 'High') {
+        issue.urgency = 'Emergency';
+        if (!issue.aiSummary.includes('COMMUNITY ESCALATED')) {
+          issue.aiSummary = `[COMMUNITY ESCALATED: 10+ CITIZEN ECHOES] ${issue.aiSummary}`;
+        }
+      } else if (issue.upvotes >= 5 && issue.urgency === 'Medium') {
+        issue.urgency = 'High';
+        if (!issue.aiSummary.includes('COMMUNITY ESCALATED')) {
+          issue.aiSummary = `[COMMUNITY ESCALATED: 5+ CITIZEN ECHOES] ${issue.aiSummary}`;
+        }
+      }
+    }
+
+    await issue.save();
+    return res.status(200).json({ success: true, data: issue });
   } catch (error) {
     return res.status(400).json({ success: false, error: error.message });
   }

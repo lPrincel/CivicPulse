@@ -106,7 +106,8 @@ export default function App() {
   const handleCreateIssue = async (newIssueData) => {
     const payloadWithReporter = {
       ...newIssueData,
-      reporterName: user?.name || 'Anonymous Resident'
+      reporterName: user?.name || 'Jane Doe',
+      reporterEmail: user?.email || 'citizen@civicpulse.org'
     };
 
     const saved = await createIssue(payloadWithReporter);
@@ -117,7 +118,7 @@ export default function App() {
       addToast('🚨 EMERGENCY ALERT LOGGED', `Dispatched to City Hall Priority Queue (${saved.category})`, 'error');
     } else {
       playSuccessChime();
-      addToast('✅ Ticket Created', `AI categorized under ${saved.category} (${saved.urgency} priority)`, 'success');
+      addToast('✅ Ticket Created', `Categorized under ${saved.category} (${saved.urgency} priority)`, 'success');
     }
   };
 
@@ -141,13 +142,28 @@ export default function App() {
     }
   };
 
-  // Handle Upvote
-  const handleUpvote = async (id) => {
+  // Handle Upvote with Dynamic Urgency Escalation & Toggle
+  const handleUpvote = async (id, isDecrement = false) => {
     setIssues((prev) =>
-      prev.map((item) => (item._id === id ? { ...item, upvotes: (item.upvotes || 0) + 1 } : item))
+      prev.map((item) => {
+        if (item._id !== id) return item;
+        const newUpvotes = isDecrement ? Math.max(1, (item.upvotes || 1) - 1) : (item.upvotes || 0) + 1;
+        let newUrgency = item.urgency;
+        if (!isDecrement) {
+          if (newUpvotes >= 10 && item.urgency === 'High') newUrgency = 'Emergency';
+          else if (newUpvotes >= 5 && item.urgency === 'Medium') newUrgency = 'High';
+        }
+        return { ...item, upvotes: newUpvotes, urgency: newUrgency };
+      })
     );
-    addToast('👍 Echo Recorded', 'Your confirmation increases dispatch priority score', 'info');
-    await upvoteIssue(id);
+
+    if (isDecrement) {
+      addToast('Echo removed', 'Community priority adjusted', 'info');
+    } else {
+      addToast('👍 Community Echo Recorded', 'Increases municipal triage priority score', 'info');
+    }
+
+    await upvoteIssue(id, isDecrement);
   };
 
   // Handle Re-seed Demo Data
@@ -212,7 +228,7 @@ export default function App() {
             issues={issues}
             onOpenReportModal={() => setIsModalOpen(true)}
             onUpvote={handleUpvote}
-            currentUser={user.name}
+            user={user}
           />
         )}
       </main>

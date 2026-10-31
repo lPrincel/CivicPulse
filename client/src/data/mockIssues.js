@@ -7,7 +7,11 @@ export const initialMockIssues = [
     urgency: 'Emergency',
     location: '402 Oak Street (Corner of 4th Ave)',
     status: 'Reported',
-    aiSummary: 'Critical electrical fire hazard adjacent to school zone. Automated priority dispatch sent to municipal grid technicians.',
+    upvotes: 18,
+    reporterName: 'Jane Doe',
+    reporterEmail: 'citizen@civicpulse.org',
+    imageUrl: 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&w=600&q=80',
+    aiSummary: 'Critical electrical hazard adjacent to school zone. Automated priority dispatch sent to municipal grid technicians.',
     createdAt: new Date(Date.now() - 1000 * 60 * 18).toISOString()
   },
   {
@@ -18,6 +22,10 @@ export const initialMockIssues = [
     urgency: 'Emergency',
     location: '880 North Commercial Blvd',
     status: 'In Progress',
+    upvotes: 12,
+    reporterName: 'Marcus Vance',
+    reporterEmail: 'marcus@example.com',
+    imageUrl: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?auto=format&fit=crop&w=600&q=80',
     aiSummary: 'Major utility rupture causing roadway destabilization. Municipal water isolation valve crew active on site.',
     createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString()
   },
@@ -29,6 +37,10 @@ export const initialMockIssues = [
     urgency: 'High',
     location: 'Westbound Highway 9 Exit 12 Ramp',
     status: 'Reported',
+    upvotes: 9,
+    reporterName: 'Jane Doe',
+    reporterEmail: 'citizen@civicpulse.org',
+    imageUrl: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80',
     aiSummary: 'High-velocity roadway structural failure with confirmed vehicle incidents. Immediate asphalt patching crew dispatched.',
     createdAt: new Date(Date.now() - 1000 * 60 * 95).toISOString()
   },
@@ -40,6 +52,10 @@ export const initialMockIssues = [
     urgency: 'High',
     location: 'Riverside Community Park, North Edge',
     status: 'In Progress',
+    upvotes: 5,
+    reporterName: 'Priya Sharma',
+    reporterEmail: 'priya@example.com',
+    imageUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=600&q=80',
     aiSummary: 'Environmental contamination alert. Environmental protection agency notified for containment and soil sampling.',
     createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString()
   },
@@ -51,6 +67,10 @@ export const initialMockIssues = [
     urgency: 'Medium',
     location: '214 Pinecrest Way',
     status: 'Reported',
+    upvotes: 4,
+    reporterName: 'David Kim',
+    reporterEmail: 'david@example.com',
+    imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80',
     aiSummary: 'Right-of-way pedestrian obstruction. Parks & Recreation arborist ticket generated for removal.',
     createdAt: new Date(Date.now() - 1000 * 60 * 240).toISOString()
   },
@@ -62,6 +82,10 @@ export const initialMockIssues = [
     urgency: 'Medium',
     location: 'Alleyway behind 15 Market Square',
     status: 'Reported',
+    upvotes: 3,
+    reporterName: 'Jane Doe',
+    reporterEmail: 'citizen@civicpulse.org',
+    imageUrl: '',
     aiSummary: 'Sanitation code violation. Priority sanitation pickup route assigned for tomorrow morning.',
     createdAt: new Date(Date.now() - 1000 * 60 * 360).toISOString()
   },
@@ -73,6 +97,10 @@ export const initialMockIssues = [
     urgency: 'Low',
     location: 'Intersection of Elm St & 8th Avenue',
     status: 'Resolved',
+    upvotes: 6,
+    reporterName: 'Elena Rostova',
+    reporterEmail: 'elena@example.com',
+    imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
     aiSummary: 'Routine illumination failure. Public works municipal electrician replaced LED fixture and verified circuit.',
     createdAt: new Date(Date.now() - 1000 * 60 * 720).toISOString()
   },
@@ -84,8 +112,11 @@ export const initialMockIssues = [
     urgency: 'High',
     location: 'Corner of Maple & 2nd Street',
     status: 'Resolved',
+    upvotes: 11,
+    reporterName: 'Alex Morgan',
+    reporterEmail: 'alex@example.com',
+    imageUrl: '',
     aiSummary: 'Critical traffic safety control missing. Traffic department deployed temporary stop sign within 45 minutes.',
     createdAt: new Date(Date.now() - 1000 * 60 * 900).toISOString()
   }
 ];
-

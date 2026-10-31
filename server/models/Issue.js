@@ -56,6 +56,14 @@ const issueSchema = new mongoose.Schema(
     reporterName: {
       type: String,
       default: 'Anonymous Citizen'
+    },
+    reporterEmail: {
+      type: String,
+      default: ''
+    },
+    imageUrl: {
+      type: String,
+      default: ''
     }
   },
   {

@@ -18,7 +18,8 @@ import {
   TrendingUp,
   Activity,
   DatabaseZap,
-  Check
+  Check,
+  Flame
 } from 'lucide-react';
 
 const CATEGORY_ICONS = {
@@ -312,20 +313,41 @@ export default function AdminDashboard({
 function AdminIssueCard({ issue, onStatusChange }) {
   const urgencyCfg = URGENCY_CONFIG[issue.urgency] || URGENCY_CONFIG.Medium;
   const CategoryIcon = CATEGORY_ICONS[issue.category] || AlertTriangle;
+  const isCommunityEscalated = (issue.upvotes || 0) >= 5;
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md transition-all space-y-3">
       {/* Badges Header */}
-      <div className="flex items-center justify-between gap-2">
-        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${urgencyCfg.badge}`}>
-          {issue.urgency}
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-1.5">
+        <div className="flex items-center gap-1.5">
+          <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${urgencyCfg.badge}`}>
+            {issue.urgency}
+          </span>
 
-        <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
-          <CategoryIcon className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-          {issue.category}
-        </span>
+          <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+            <CategoryIcon className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+            {issue.category}
+          </span>
+        </div>
+
+        {isCommunityEscalated && (
+          <span className="flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+            <Flame className="w-3 h-3 text-amber-500" />
+            {issue.upvotes} echoes
+          </span>
+        )}
       </div>
+
+      {/* Optional Photo Attachment */}
+      {issue.imageUrl && (
+        <div className="w-full h-32 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800">
+          <img 
+            src={issue.imageUrl} 
+            alt={issue.title} 
+            className="w-full h-full object-cover" 
+          />
+        </div>
+      )}
 
       {/* Title & Description */}
       <div>
@@ -337,10 +359,15 @@ function AdminIssueCard({ issue, onStatusChange }) {
         </p>
       </div>
 
-      {/* Address */}
-      <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-        <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0" />
-        <span className="truncate">{issue.location}</span>
+      {/* Address & Reporter */}
+      <div className="space-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+        <div className="flex items-center gap-1.5">
+          <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0" />
+          <span className="truncate font-medium">{issue.location}</span>
+        </div>
+        <div className="text-[10px] text-slate-400">
+          Reported by: <strong>{issue.reporterName || 'Citizen'}</strong>
+        </div>
       </div>
 
       {/* AI Summary Highlight */}

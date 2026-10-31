@@ -155,9 +155,9 @@ export const updateIssueStatus = async (id, status) => {
   }
 };
 
-export const upvoteIssue = async (id) => {
+export const upvoteIssue = async (id, isDecrement = false) => {
   try {
-    const response = await apiClient.post(`/issues/${id}/upvote`);
+    const response = await apiClient.post(`/issues/${id}/upvote`, { decrement: isDecrement });
     return response.data.data;
   } catch (error) {
     return { _id: id };
