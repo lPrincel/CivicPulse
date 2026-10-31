@@ -295,3 +295,4 @@ function CitizenIssueCard({ issue, onUpvote }) {
     </div>
   );
 }
+

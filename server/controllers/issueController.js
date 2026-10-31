@@ -1,4 +1,5 @@
 const Issue = require('../models/Issue');
+const User = require('../models/User');
 const { triageIssue, VALID_CATEGORIES, VALID_URGENCIES } = require('../services/aiService');
 
 const DEFAULT_SAMPLE_ISSUES = [
@@ -296,9 +297,35 @@ const seedDatabase = async (req, res) => {
   try {
     await Issue.deleteMany({});
     const seeded = await Issue.insertMany(DEFAULT_SAMPLE_ISSUES);
+
+    // Ensure demo accounts exist
+    const citizenExists = await User.findOne({ email: 'citizen@civicpulse.org' });
+    if (!citizenExists) {
+      const citizenUser = new User({
+        name: 'Jane Doe',
+        email: 'citizen@civicpulse.org',
+        role: 'citizen',
+        department: 'Community Resident'
+      });
+      citizenUser.setPassword('citizen123');
+      await citizenUser.save();
+    }
+
+    const adminExists = await User.findOne({ email: 'admin@cityhall.gov' });
+    if (!adminExists) {
+      const adminUser = new User({
+        name: 'Officer Davis',
+        email: 'admin@cityhall.gov',
+        role: 'admin',
+        department: 'Emergency Dispatch'
+      });
+      adminUser.setPassword('admin123');
+      await adminUser.save();
+    }
+
     return res.status(200).json({
       success: true,
-      message: `Database successfully seeded with ${seeded.length} realistic issues.`,
+      message: `Database successfully seeded with ${seeded.length} realistic issues and accounts.`,
       count: seeded.length,
       data: seeded
     });

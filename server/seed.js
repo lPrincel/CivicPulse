@@ -1,6 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const Issue = require('./models/Issue');
+const User = require('./models/User');
 
 const sampleIssues = [
   {
@@ -83,13 +84,35 @@ const seedDB = async () => {
     console.log(`Connecting to MongoDB at: ${mongoURI}...`);
     await mongoose.connect(mongoURI);
 
-    console.log('Clearing existing demo issues...');
+    console.log('Clearing existing demo issues & users...');
     await Issue.deleteMany({});
+    await User.deleteMany({});
 
     console.log(`Inserting ${sampleIssues.length} realistic hackathon demo issues...`);
     const created = await Issue.insertMany(sampleIssues);
 
-    console.log(`✅ Successfully seeded ${created.length} issues into CivicPulse DB!`);
+    console.log('Creating demo Citizen and Admin accounts...');
+    const citizenUser = new User({
+      name: 'Jane Doe',
+      email: 'citizen@civicpulse.org',
+      role: 'citizen',
+      department: 'Community Resident'
+    });
+    citizenUser.setPassword('citizen123');
+    await citizenUser.save();
+
+    const adminUser = new User({
+      name: 'Officer Davis',
+      email: 'admin@cityhall.gov',
+      role: 'admin',
+      department: 'Emergency Dispatch'
+    });
+    adminUser.setPassword('admin123');
+    await adminUser.save();
+
+    console.log(`✅ Successfully seeded ${created.length} issues and 2 demo accounts into CivicPulse DB!`);
+    console.log(`   Citizen Account: citizen@civicpulse.org / citizen123`);
+    console.log(`   Admin Account:   admin@cityhall.gov / admin123`);
     process.exit(0);
   } catch (error) {
     console.error(`❌ Seeding failed: ${error.message}`);

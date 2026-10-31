@@ -79,3 +79,4 @@ export const playEmergencyTone = () => {
     console.debug('Audio error:', e);
   }
 };
+

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { initialMockIssues } from '../data/mockIssues';
 
-const API_BASE_URL = 'http://localhost:5000/api/issues';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -11,17 +11,82 @@ const apiClient = axios.create({
   }
 });
 
+// Interceptor to attach JWT token if present
+apiClient.interceptors.request.use((config) => {
+  try {
+    const rawAuth = localStorage.getItem('civicpulse_auth');
+    if (rawAuth) {
+      const { token } = JSON.parse(rawAuth);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+  return config;
+});
+
 /**
- * Triage issue via AI
+ * Authentication Endpoints
+ */
+export const loginUser = async ({ email, password }) => {
+  try {
+    const response = await apiClient.post('/auth/login', { email, password });
+    return response.data;
+  } catch (error) {
+    console.warn('[API Client] Server login failed, falling back to local auth simulation:', error.message);
+    
+    // Fallback simulation for live offline demo resilience
+    const cleanEmail = email.toLowerCase().trim();
+    if (cleanEmail.includes('admin') || cleanEmail.includes('gov')) {
+      return {
+        success: true,
+        token: 'mock-admin-token-' + Date.now(),
+        name: 'Officer Davis',
+        email: cleanEmail,
+        role: 'admin',
+        department: 'Emergency Dispatch'
+      };
+    } else {
+      return {
+        success: true,
+        token: 'mock-citizen-token-' + Date.now(),
+        name: cleanEmail.split('@')[0].replace('.', ' ') || 'Jane Doe',
+        email: cleanEmail,
+        role: 'citizen',
+        department: 'Community Resident'
+      };
+    }
+  }
+};
+
+export const registerUser = async ({ name, email, password, role, department }) => {
+  try {
+    const response = await apiClient.post('/auth/register', { name, email, password, role, department });
+    return response.data;
+  } catch (error) {
+    console.warn('[API Client] Server register failed, falling back to local simulation:', error.message);
+    return {
+      success: true,
+      token: 'mock-token-' + Date.now(),
+      name,
+      email,
+      role: role || 'citizen',
+      department: department || (role === 'admin' ? 'Emergency Dispatch' : 'Community Resident')
+    };
+  }
+};
+
+/**
+ * Issue Triage & Management Endpoints
  */
 export const triageIssue = async (description, location) => {
   try {
-    const response = await apiClient.post('/triage', { description, location });
+    const response = await apiClient.post('/issues/triage', { description, location });
     return response.data.data;
   } catch (error) {
-    console.warn('[API Client] Backend unreachable, using client fallback triage:', error.message);
-    
-    // Realistic fallback delay for demo
+    console.warn('[API Client] Server unreachable, using smart client-side triage:', error.message);
     await new Promise(r => setTimeout(r, 600));
     const text = `${description} ${location}`.toLowerCase();
     
@@ -45,15 +110,12 @@ export const triageIssue = async (description, location) => {
   }
 };
 
-/**
- * Create new issue
- */
 export const createIssue = async (issueData) => {
   try {
-    const response = await apiClient.post('/', issueData);
+    const response = await apiClient.post('/issues', issueData);
     return response.data.data;
   } catch (error) {
-    console.warn('[API Client] Backend unreachable, saving to local state:', error.message);
+    console.warn('[API Client] Server unreachable, saving to local state:', error.message);
     return {
       ...issueData,
       _id: 'local-' + Date.now(),
@@ -63,15 +125,12 @@ export const createIssue = async (issueData) => {
   }
 };
 
-/**
- * Fetch all issues
- */
 export const fetchIssues = async (params = {}) => {
   try {
-    const response = await apiClient.get('/', { params });
+    const response = await apiClient.get('/issues', { params });
     return response.data;
   } catch (error) {
-    console.warn('[API Client] Backend offline, using mock dataset:', error.message);
+    console.warn('[API Client] Server offline, using mock dataset:', error.message);
     return {
       success: true,
       count: initialMockIssues.length,
@@ -86,37 +145,28 @@ export const fetchIssues = async (params = {}) => {
   }
 };
 
-/**
- * Update issue status
- */
 export const updateIssueStatus = async (id, status) => {
   try {
-    const response = await apiClient.patch(`/${id}/status`, { status });
+    const response = await apiClient.patch(`/issues/${id}/status`, { status });
     return response.data.data;
   } catch (error) {
-    console.warn('[API Client] Backend offline, simulating status change:', error.message);
+    console.warn('[API Client] Server offline, simulating status change:', error.message);
     return { _id: id, status };
   }
 };
 
-/**
- * Upvote an issue
- */
 export const upvoteIssue = async (id) => {
   try {
-    const response = await apiClient.post(`/${id}/upvote`);
+    const response = await apiClient.post(`/issues/${id}/upvote`);
     return response.data.data;
   } catch (error) {
     return { _id: id };
   }
 };
 
-/**
- * Re-seed database
- */
 export const seedIssues = async () => {
   try {
-    const response = await apiClient.post('/seed');
+    const response = await apiClient.post('/issues/seed');
     return response.data;
   } catch (error) {
     return { success: true, data: initialMockIssues };

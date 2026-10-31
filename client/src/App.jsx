@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import CitizenPortal from './components/CitizenPortal';
 import AdminDashboard from './components/AdminDashboard';
 import ReportIssueModal from './components/ReportIssueModal';
+import AuthPage from './components/AuthPage';
 import ToastContainer from './components/Toast';
 import { fetchIssues, createIssue, triageIssue, updateIssueStatus, upvoteIssue, seedIssues } from './services/api';
 import { initialMockIssues } from './data/mockIssues';
@@ -11,10 +12,19 @@ import { playSuccessChime, playEmergencyTone } from './utils/audio';
 export default function App() {
   const [issues, setIssues] = useState(initialMockIssues);
   const [stats, setStats] = useState({});
-  const [role, setRole] = useState('citizen'); // 'citizen' | 'admin'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [toasts, setToasts] = useState([]);
+
+  // Authenticated User State
+  const [user, setUser] = useState(() => {
+    try {
+      const savedAuth = localStorage.getItem('civicpulse_auth');
+      return savedAuth ? JSON.parse(savedAuth) : null;
+    } catch (e) {
+      return null;
+    }
+  });
 
   // Dark mode setup
   const [isDark, setIsDark] = useState(() => {
@@ -44,7 +54,7 @@ export default function App() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // Load issues on mount
+  // Load issues from server
   const loadData = async () => {
     setIsLoading(true);
     try {
@@ -63,8 +73,29 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    }
+  }, [user]);
+
+  // Handle Authentication Success
+  const handleAuthSuccess = (authData) => {
+    setUser(authData);
+    localStorage.setItem('civicpulse_auth', JSON.stringify(authData));
+    playSuccessChime();
+    addToast(
+      `Welcome, ${authData.name}!`,
+      authData.role === 'admin' ? 'Authenticated as Municipal Dispatcher' : 'Connected to Citizen Safety Hub',
+      'success'
+    );
+  };
+
+  // Handle Logout
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('civicpulse_auth');
+    addToast('Signed out', 'Session cleared successfully', 'info');
+  };
 
   // Handle AI Triage
   const handleTriage = async (description, location) => {
@@ -73,12 +104,17 @@ export default function App() {
 
   // Handle Create Issue
   const handleCreateIssue = async (newIssueData) => {
-    const saved = await createIssue(newIssueData);
+    const payloadWithReporter = {
+      ...newIssueData,
+      reporterName: user?.name || 'Anonymous Resident'
+    };
+
+    const saved = await createIssue(payloadWithReporter);
     setIssues((prev) => [saved, ...prev]);
 
     if (saved.urgency === 'Emergency') {
       playEmergencyTone();
-      addToast('🚨 EMERGENCY ALERT LOGGED', `Dispatched to City Hall Priority Dispatch (${saved.category})`, 'error');
+      addToast('🚨 EMERGENCY ALERT LOGGED', `Dispatched to City Hall Priority Queue (${saved.category})`, 'error');
     } else {
       playSuccessChime();
       addToast('✅ Ticket Created', `AI categorized under ${saved.category} (${saved.urgency} priority)`, 'success');
@@ -93,7 +129,7 @@ export default function App() {
 
     if (newStatus === 'Resolved') {
       playSuccessChime();
-      addToast('🎉 Issue Marked Resolved!', 'Notification dispatched to reporting residents', 'success');
+      addToast('🎉 Issue Marked Resolved!', 'Notification dispatched to community residents', 'success');
     } else if (newStatus === 'In Progress') {
       addToast('🚜 Field Crew Dispatched', 'Municipal response unit on route to site', 'info');
     }
@@ -114,7 +150,7 @@ export default function App() {
     await upvoteIssue(id);
   };
 
-  // Handle Re-seed Demo
+  // Handle Re-seed Demo Data
   const handleSeedDemo = async () => {
     setIsLoading(true);
     try {
@@ -131,30 +167,37 @@ export default function App() {
     }
   };
 
-  const currentUser = role === 'admin' ? 'Officer Davis (Lead Dispatcher)' : 'Jane Doe (Citizen)';
+  // If user is not authenticated, render Login / Sign Up Page
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans transition-colors">
+        <AuthPage
+          onAuthSuccess={handleAuthSuccess}
+          isDark={isDark}
+          onToggleDark={() => setIsDark(!isDark)}
+        />
+        <ToastContainer toasts={toasts} onDismiss={removeToast} />
+      </div>
+    );
+  }
+
+  // Authenticated Application (Strictly role-separated)
+  const isAdmin = user.role === 'admin';
 
   return (
     <div className="min-h-screen bg-slate-100/70 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 transition-colors">
-      {/* Navigation Header */}
+      {/* Role-Specific Navigation */}
       <Navbar
-        currentRole={role}
-        onRoleChange={setRole}
+        user={user}
+        onLogout={handleLogout}
         isDark={isDark}
         onToggleDark={() => setIsDark(!isDark)}
         onOpenReportModal={() => setIsModalOpen(true)}
-        currentUser={currentUser}
       />
 
-      {/* Main Content Area */}
+      {/* Main Content Area based on User Role */}
       <main className="max-w-7xl mx-auto px-4 lg:px-8 pt-6">
-        {role === 'citizen' ? (
-          <CitizenPortal
-            issues={issues}
-            onOpenReportModal={() => setIsModalOpen(true)}
-            onUpvote={handleUpvote}
-            currentUser={currentUser}
-          />
-        ) : (
+        {isAdmin ? (
           <AdminDashboard
             issues={issues}
             stats={stats}
@@ -164,19 +207,26 @@ export default function App() {
             onSeedDemo={handleSeedDemo}
             isLoading={isLoading}
           />
+        ) : (
+          <CitizenPortal
+            issues={issues}
+            onOpenReportModal={() => setIsModalOpen(true)}
+            onUpvote={handleUpvote}
+            currentUser={user.name}
+          />
         )}
       </main>
 
-      {/* Report Modal */}
+      {/* Citizen Report Modal */}
       <ReportIssueModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateIssue}
         onTriage={handleTriage}
-        currentUser={currentUser}
+        currentUser={user.name}
       />
 
-      {/* Floating Notifications */}
+      {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
     </div>
   );
