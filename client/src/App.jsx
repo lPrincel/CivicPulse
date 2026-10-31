@@ -233,12 +233,22 @@ export default function App() {
         )}
       </main>
 
-      {/* Citizen Report Modal */}
+      {/* Citizen Report Modal with AI Duplicate Interceptor */}
       <ReportIssueModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateIssue}
         currentUser={user.name}
+        existingIssues={issues}
+        onEchoExisting={(issueId) => {
+          handleUpvote(issueId, false);
+          setIsModalOpen(false);
+          addToast(
+            '🌟 Existing Hazard Echoed!',
+            'Your upvote was added to the nearby ticket. Urgency escalated for City Hall dispatch.',
+            'success'
+          );
+        }}
       />
 
       {/* Toast Notifications */}

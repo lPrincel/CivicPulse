@@ -164,6 +164,15 @@ export const upvoteIssue = async (id, isDecrement = false) => {
   }
 };
 
+export const checkDuplicateIssue = async (description, location) => {
+  try {
+    const response = await apiClient.post('/issues/check-duplicate', { description, location });
+    return response.data;
+  } catch (error) {
+    return { success: false, isDuplicate: false };
+  }
+};
+
 export const seedIssues = async () => {
   try {
     const response = await apiClient.post('/issues/seed');

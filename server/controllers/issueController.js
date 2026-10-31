@@ -385,11 +385,70 @@ const seedDatabase = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Check for potential duplicate issue based on location and hazard keywords
+ * @route  POST /api/issues/check-duplicate
+ */
+const checkDuplicateIssue = async (req, res) => {
+  try {
+    const { description = '', location = '' } = req.body;
+    const descLower = description.toLowerCase().trim();
+    const locLower = location.toLowerCase().trim();
+
+    if (descLower.length < 5 || locLower.length < 3) {
+      return res.status(200).json({ success: true, isDuplicate: false });
+    }
+
+    const activeIssues = await Issue.find({ status: { $ne: 'Resolved' } });
+
+    const hazardKeywords = [
+      'pothole', 'road', 'asphalt', 'crater', 'sinkhole',
+      'water', 'pipe', 'leak', 'flood', 'flooding', 'drain', 'hydrant',
+      'wire', 'spark', 'sparking', 'electric', 'power', 'transformer', 'blackout', 'streetlight', 'light',
+      'trash', 'garbage', 'dump', 'dumping', 'waste', 'dumpster',
+      'tree', 'branch', 'sidewalk', 'walkway'
+    ];
+
+    const matchedKeywords = hazardKeywords.filter((kw) => descLower.includes(kw));
+    const ignoreWords = new Set(['near', 'corner', 'street', 'road', 'avenue', 'blvd', 'the', 'and', 'with', 'from']);
+    const locTokens = locLower
+      .replace(/[(),°NWES\d.]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length >= 3 && !ignoreWords.has(w));
+
+    for (const issue of activeIssues) {
+      const issueDesc = (issue.description || '').toLowerCase();
+      const issueLoc = (issue.location || '').toLowerCase();
+      const issueTitle = (issue.title || '').toLowerCase();
+
+      const hasLocationMatch = locTokens.some((token) => issueLoc.includes(token));
+      const hasHazardMatch = matchedKeywords.some(
+        (kw) => issueDesc.includes(kw) || issueTitle.includes(kw)
+      );
+      const hasCategoryMatch = issue.category && descLower.includes(issue.category.toLowerCase());
+
+      if (hasLocationMatch && (hasHazardMatch || hasCategoryMatch)) {
+        return res.status(200).json({
+          success: true,
+          isDuplicate: true,
+          candidate: issue
+        });
+      }
+    }
+
+    return res.status(200).json({ success: true, isDuplicate: false });
+  } catch (error) {
+    console.error(`[checkDuplicateIssue Error] ${error.message}`);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   triageIssueHandler,
   createIssue,
   getIssues,
   updateIssueStatus,
   upvoteIssue,
-  seedDatabase
+  seedDatabase,
+  checkDuplicateIssue
 };

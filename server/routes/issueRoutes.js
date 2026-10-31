@@ -6,11 +6,15 @@ const {
   getIssues,
   updateIssueStatus,
   upvoteIssue,
-  seedDatabase
+  seedDatabase,
+  checkDuplicateIssue
 } = require('../controllers/issueController');
 
 // AI Triage Route
 router.post('/triage', triageIssueHandler);
+
+// Duplicate Checking Route
+router.post('/check-duplicate', checkDuplicateIssue);
 
 // Demo Seed Route
 router.post('/seed', seedDatabase);

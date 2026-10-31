@@ -85,7 +85,15 @@ If an API key is missing or an external rate-limit occurs during a live hackatho
 - **Adaptive Dark / Light Tiles:** Automatically serves **CARTO Dark Matter** tiles in dark mode and **OpenStreetMap Standard** in light mode.
 - **Pulsing Emergency Blips & Rich Popups:** Emergency hazard markers pulse with glowing rings. Clicking any pin displays a rich preview popup with photo, status, and department.
 
-### 🌙 5. Dark Mode & Audio Feedback (Hackathon Polish)
+### 🛡️ 5. Smart AI & Geospatial Duplicate Interceptor ("Echo Engine")
+- **The Problem:** In real life, citizens don't scroll through hundreds of feed items before reporting. Multiple people report the same pothole or wire, cluttering the municipal database.
+- **Pre-Submission Interception:** Upon clicking "Submit", CivicPulse scans active issues for spatial proximity (matching street/coordinates) and semantic hazard keywords.
+- **Interactive Resolution Dialog:** If a match is detected, the citizen is presented with the existing ticket and offered two options:
+  - 🌟 **"Echo Existing Hazard (+1 Urgency)"** $\rightarrow$ Increments the upvote counter without creating redundant tickets, triggering automatic priority escalation (5 echoes $\rightarrow$ High, 10 echoes $\rightarrow$ Emergency).
+  - ➕ **"No, This is a Separate Hazard"** $\rightarrow$ Submits as a distinct ticket if it is genuinely a different issue.
+- **Dedicated Backend Route:** `POST /api/issues/check-duplicate` for cross-platform API validation.
+
+### 🌙 6. Dark Mode & Audio Feedback (Hackathon Polish)
 - Full Dark / Light theme toggle with persistent storage in `localStorage`.
 - **Web Audio API Chimes:** Native browser synthesizer (zero external MP3 assets) playing celebratory major triad arpeggios when tickets are resolved and siren frequencies on emergency logs.
 - Animated slide-in Toast notification system.
