@@ -164,6 +164,16 @@ export const upvoteIssue = async (id, isDecrement = false) => {
   }
 };
 
+export const deleteIssue = async (id) => {
+  try {
+    const response = await apiClient.delete(`/issues/${id}`);
+    return response.data;
+  } catch (error) {
+    console.warn('[API Client] Server delete failed, simulating locally:', error.message);
+    return { success: true };
+  }
+};
+
 export const checkDuplicateIssue = async (description, location) => {
   try {
     const response = await apiClient.post('/issues/check-duplicate', { description, location });

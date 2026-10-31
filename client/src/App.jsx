@@ -5,7 +5,7 @@ import AdminDashboard from './components/AdminDashboard';
 import ReportIssueModal from './components/ReportIssueModal';
 import AuthPage from './components/AuthPage';
 import ToastContainer from './components/Toast';
-import { fetchIssues, createIssue, triageIssue, updateIssueStatus, upvoteIssue, seedIssues } from './services/api';
+import { fetchIssues, createIssue, triageIssue, updateIssueStatus, upvoteIssue, seedIssues, deleteIssue } from './services/api';
 import { initialMockIssues } from './data/mockIssues';
 import { playSuccessChime, playEmergencyTone } from './utils/audio';
 
@@ -166,6 +166,18 @@ export default function App() {
     await upvoteIssue(id, isDecrement);
   };
 
+  // Handle Delete / Retract Issue
+  const handleDeleteIssue = async (id) => {
+    try {
+      setIssues((prev) => prev.filter((item) => item._id !== id));
+      await deleteIssue(id);
+      addToast('🗑️ Report Retracted', 'The hazard report was removed from records.', 'info');
+    } catch (err) {
+      console.error('Failed to retract issue:', err);
+      addToast('Error', 'Failed to retract issue from server.', 'error');
+    }
+  };
+
   // Handle Re-seed Demo Data
   const handleSeedDemo = async () => {
     setIsLoading(true);
@@ -221,6 +233,7 @@ export default function App() {
             onOpenReportModal={() => setIsModalOpen(true)}
             onRefresh={loadData}
             onSeedDemo={handleSeedDemo}
+            onDeleteIssue={handleDeleteIssue}
             isLoading={isLoading}
           />
         ) : (
@@ -228,6 +241,7 @@ export default function App() {
             issues={issues}
             onOpenReportModal={() => setIsModalOpen(true)}
             onUpvote={handleUpvote}
+            onDeleteIssue={handleDeleteIssue}
             user={user}
           />
         )}

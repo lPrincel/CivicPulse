@@ -47,6 +47,7 @@ export default function CitizenPortal({
   issues = [], 
   onOpenReportModal, 
   onUpvote, 
+  onDeleteIssue,
   user = {} 
 }) {
   const [activeTab, setActiveTab] = useState('all'); // 'all' | 'mine' | 'urgent'
@@ -282,8 +283,10 @@ export default function CitizenPortal({
               <CitizenIssueCard 
                 key={issue._id} 
                 issue={issue} 
+                user={user}
                 isLiked={likedIssueIds.includes(issue._id)}
                 onToggleLike={() => handleToggleLike(issue._id)} 
+                onDelete={() => onDeleteIssue && onDeleteIssue(issue._id)}
               />
             ))
           )}
@@ -296,10 +299,23 @@ export default function CitizenPortal({
 /**
  * Individual Citizen Issue Card with Glassmorphic Aesthetic
  */
-function CitizenIssueCard({ issue, isLiked, onToggleLike }) {
+function CitizenIssueCard({ issue, user, isLiked, onToggleLike, onDelete }) {
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
   const CategoryIcon = CATEGORY_ICONS[issue.category] || AlertTriangle;
   const statusIndex = issue.status === 'Resolved' ? 2 : issue.status === 'In Progress' ? 1 : 0;
   const isCommunityEscalated = (issue.upvotes || 0) >= 5;
+
+  const userEmail = (user?.email || '').toLowerCase().trim();
+  const userName = (user?.name || '').toLowerCase().trim();
+  const issueEmail = (issue.reporterEmail || '').toLowerCase().trim();
+  const issueName = (issue.reporterName || '').toLowerCase().trim();
+
+  // Author check to allow deleting own accidental/mistaken reports
+  const isAuthor = Boolean(
+    (userEmail && issueEmail && userEmail === issueEmail) ||
+    (userName && issueName && userName === issueName)
+  );
 
   return (
     <div className="bg-white dark:bg-slate-900/90 rounded-2xl p-5 border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-blue-500/30 dark:hover:border-blue-500/30 transition-all space-y-4">
@@ -324,8 +340,49 @@ function CitizenIssueCard({ issue, isLiked, onToggleLike }) {
           )}
         </div>
 
-        <div className="text-[11px] text-slate-500 dark:text-slate-400">
-          Reported by <strong className="text-slate-700 dark:text-slate-300">{issue.reporterName || 'Resident'}</strong> • {new Date(issue.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        <div className="flex items-center gap-2.5">
+          <div className="text-[11px] text-slate-500 dark:text-slate-400">
+            {isAuthor ? (
+              <span className="font-bold text-blue-600 dark:text-blue-400">Your Report</span>
+            ) : (
+              <>Reported by <strong className="text-slate-700 dark:text-slate-300">{issue.reporterName || 'Resident'}</strong></>
+            )} • {new Date(issue.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </div>
+
+          {/* Delete / Retract Report for Author */}
+          {isAuthor && (
+            <div>
+              {isConfirmingDelete ? (
+                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-red-500/10 border border-red-500/20 text-xs animate-in fade-in">
+                  <span className="text-[10px] font-semibold text-red-600 dark:text-red-400 pl-1">Delete report?</span>
+                  <button
+                    onClick={() => {
+                      if (onDelete) onDelete();
+                      setIsConfirmingDelete(false);
+                    }}
+                    className="px-2 py-0.5 rounded-md bg-red-600 text-white font-bold text-[10px] hover:bg-red-700 transition-colors cursor-pointer"
+                  >
+                    Yes, Delete
+                  </button>
+                  <button
+                    onClick={() => setIsConfirmingDelete(false)}
+                    className="px-1.5 py-0.5 rounded-md text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 text-[10px] font-medium transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsConfirmingDelete(true)}
+                  className="px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-1 cursor-pointer"
+                  title="Retract / Delete your report"
+                >
+                  <Trash2 className="w-3 h-3 text-slate-400" />
+                  <span>Retract</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

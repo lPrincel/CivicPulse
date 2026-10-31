@@ -65,6 +65,7 @@ export default function AdminDashboard({
   onOpenReportModal, 
   onRefresh, 
   onSeedDemo, 
+  onDeleteIssue,
   isLoading = false 
 }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -313,6 +314,7 @@ export default function AdminDashboard({
                         key={issue._id} 
                         issue={issue} 
                         onStatusChange={onStatusChange} 
+                        onDelete={() => onDeleteIssue && onDeleteIssue(issue._id)}
                       />
                     ))
                   )}
@@ -334,6 +336,7 @@ export default function AdminDashboard({
                 key={issue._id} 
                 issue={issue} 
                 onStatusChange={onStatusChange} 
+                onDelete={() => onDeleteIssue && onDeleteIssue(issue._id)}
               />
             ))
           )}
@@ -346,7 +349,7 @@ export default function AdminDashboard({
 /**
  * Municipal Admin Kanban Issue Card with AI Protocol Highlight
  */
-function AdminIssueCard({ issue, onStatusChange }) {
+function AdminIssueCard({ issue, onStatusChange, onDelete }) {
   const urgencyCfg = URGENCY_CONFIG[issue.urgency] || URGENCY_CONFIG.Medium;
   const CategoryIcon = CATEGORY_ICONS[issue.category] || AlertTriangle;
   const isCommunityEscalated = (issue.upvotes || 0) >= 5;
@@ -424,6 +427,20 @@ function AdminIssueCard({ issue, onStatusChange }) {
         </span>
 
         <div className="flex items-center gap-1.5">
+          {onDelete && (
+            <button
+              onClick={() => {
+                if (window.confirm(`Permanently remove ticket: "${issue.title}"?`)) {
+                  onDelete();
+                }
+              }}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
+              title="Purge / Delete Incident"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           {issue.status === 'Reported' && (
             <button
               onClick={() => onStatusChange(issue._id, 'In Progress')}

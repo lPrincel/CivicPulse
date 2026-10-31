@@ -6,6 +6,7 @@ const {
   getIssues,
   updateIssueStatus,
   upvoteIssue,
+  deleteIssue,
   seedDatabase,
   checkDuplicateIssue
 } = require('../controllers/issueController');
@@ -26,6 +27,9 @@ router.post('/:id/upvote', upvoteIssue);
 router.route('/')
   .get(getIssues)
   .post(createIssue);
+
+router.route('/:id')
+  .delete(deleteIssue);
 
 router.patch('/:id/status', updateIssueStatus);
 

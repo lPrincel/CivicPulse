@@ -337,6 +337,36 @@ const upvoteIssue = async (req, res) => {
 };
 
 /**
+ * @desc   Delete / Retract an issue report
+ * @route  DELETE /api/issues/:id
+ */
+const deleteIssue = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Issue.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: `Issue not found with ID: ${id}`
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Issue retracted successfully',
+      data: deleted
+    });
+  } catch (error) {
+    console.error(`[deleteIssue Error] ${error.message}`);
+    return res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+/**
  * @desc   Seed / Reset Demo Database
  * @route  POST /api/issues/seed
  */
@@ -449,6 +479,7 @@ module.exports = {
   getIssues,
   updateIssueStatus,
   upvoteIssue,
+  deleteIssue,
   seedDatabase,
   checkDuplicateIssue
 };
