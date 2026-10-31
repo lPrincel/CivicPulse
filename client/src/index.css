@@ -66,6 +66,11 @@
 }
 
 /* Custom Leaflet Map & Popup Styling */
+/* Dark Mode Leaflet Tile Filter - 100% Free, Zero API Key, Zero Watermarks */
+.dark .leaflet-tile-pane {
+  filter: brightness(0.65) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.75);
+}
+
 .civicpulse-leaflet-popup .leaflet-popup-content-wrapper {
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(12px);
@@ -75,12 +80,20 @@
   padding: 0;
   overflow: hidden;
 }
+.dark .civicpulse-leaflet-popup .leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
 .civicpulse-leaflet-popup .leaflet-popup-content {
   margin: 0;
   line-height: inherit;
 }
 .civicpulse-leaflet-popup .leaflet-popup-tip {
   background: rgba(255, 255, 255, 0.96);
+}
+.dark .civicpulse-leaflet-popup .leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.95);
 }
 .custom-leaflet-marker {
   background: transparent !important;

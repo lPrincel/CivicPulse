@@ -100,19 +100,14 @@ export default function CityMapRadar({ issues = [] }) {
     // Add zoom control at top-right
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // Pick Tile Layer based on Dark Mode
-    // CARTO Dark Matter for Dark mode, OpenStreetMap Standard for Light mode
-    const tileUrl = isDark
-      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-    const attribution = isDark
-      ? '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+    // 100% Free OpenStreetMap Standard Tiles (Zero API Key, Zero Watermarks)
+    // Dark mode is styled with sleek GPU-accelerated CSS filters in index.css
+    const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
     L.tileLayer(tileUrl, {
       maxZoom: 19,
-      subdomains: 'abcd',
+      subdomains: ['a', 'b', 'c'],
       attribution
     }).addTo(map);
 
@@ -126,7 +121,7 @@ export default function CityMapRadar({ issues = [] }) {
         mapInstanceRef.current = null;
       }
     };
-  }, [isDark]);
+  }, []);
 
   // Update Markers when issues or center change
   useEffect(() => {
