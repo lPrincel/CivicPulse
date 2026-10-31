@@ -172,3 +172,4 @@ For quick evaluation without manual sign-up, use the one-click demo buttons on t
 
 ## 👥 Authors
 Developed with passion for modern smart cities and civic technology.
+

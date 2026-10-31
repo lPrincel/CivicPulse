@@ -12,15 +12,18 @@ import {
   Droplet, 
   Trash2, 
   LayoutGrid, 
-  Columns3,
-  Sparkles,
-  RefreshCw,
-  TrendingUp,
-  Activity,
-  DatabaseZap,
-  Check,
-  Flame
+  Columns3, 
+  Sparkles, 
+  RefreshCw, 
+  TrendingUp, 
+  Activity, 
+  DatabaseZap, 
+  Check, 
+  Flame, 
+  Map, 
+  Radio
 } from 'lucide-react';
+import CityMapRadar from './CityMapRadar';
 
 const CATEGORY_ICONS = {
   Roads: ShieldAlert,
@@ -50,24 +53,24 @@ const URGENCY_CONFIG = {
 };
 
 const STATUS_COLUMNS = [
-  { id: 'Reported', label: '1. Triage & Queue', color: 'border-yellow-500/40 bg-yellow-500/5', badge: 'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-300' },
-  { id: 'In Progress', label: '2. Field Crew Dispatched', color: 'border-blue-500/40 bg-blue-500/5', badge: 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300' },
-  { id: 'Resolved', label: '3. Verified & Closed', color: 'border-emerald-500/40 bg-emerald-500/5', badge: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300' }
+  { id: 'Reported', label: '1. Triage & Queue', color: 'border-yellow-500/40 bg-yellow-500/5', badge: 'bg-yellow-100 dark:bg-yellow-950/80 text-yellow-800 dark:text-yellow-300' },
+  { id: 'In Progress', label: '2. Field Crew Dispatched', color: 'border-blue-500/40 bg-blue-500/5', badge: 'bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300' },
+  { id: 'Resolved', label: '3. Verified & Closed', color: 'border-emerald-500/40 bg-emerald-500/5', badge: 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300' }
 ];
 
 export default function AdminDashboard({ 
   issues = [], 
   stats = {}, 
   onStatusChange, 
-  onOpenReportModal,
-  onRefresh,
-  onSeedDemo,
+  onOpenReportModal, 
+  onRefresh, 
+  onSeedDemo, 
   isLoading = false 
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedUrgency, setSelectedUrgency] = useState('All');
-  const [viewMode, setViewMode] = useState('kanban');
+  const [viewMode, setViewMode] = useState('kanban'); // 'kanban' | 'grid' | 'map'
 
   // Filtered issues
   const filteredIssues = issues.filter((issue) => {
@@ -90,10 +93,47 @@ export default function AdminDashboard({
 
   return (
     <div className="space-y-6 pb-16">
+      {/* City Hall Dispatch Operations Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-3xl bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border border-white/10 shadow-xl">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-blue-400">
+            <Radio className="w-5 h-5 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-sm tracking-tight">Municipal Operations Command</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                SLA Active
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400">Real-time incident stream • Automated Gemini AI field dispatch</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onSeedDemo}
+            className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-white/15"
+            title="Reset sample records for judges demo"
+          >
+            <DatabaseZap className="w-3.5 h-3.5 text-blue-400" />
+            <span>Seed Demo Data</span>
+          </button>
+
+          <button
+            onClick={onRefresh}
+            title="Refresh issues"
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all border border-white/15 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-blue-400' : ''}`} />
+          </button>
+        </div>
+      </div>
+
       {/* 4 Executive KPI Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Issues */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-slate-900/90 p-5 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Reports</span>
             <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -101,13 +141,13 @@ export default function AdminDashboard({
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-900 dark:text-white">{totalCount}</span>
+            <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{totalCount}</span>
             <span className="text-xs text-slate-500 font-medium">tickets logged</span>
           </div>
         </div>
 
         {/* Urgent Hazards */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-slate-900/90 p-5 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">Critical Hazards</span>
             <div className="w-8 h-8 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center">
@@ -115,13 +155,13 @@ export default function AdminDashboard({
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-red-600 dark:text-red-400">{urgentCount}</span>
+            <span className="text-3xl font-black text-red-600 dark:text-red-400 tracking-tight">{urgentCount}</span>
             <span className="text-xs text-red-500 font-medium">immediate SLA</span>
           </div>
         </div>
 
         {/* Active Dispatch */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-slate-900/90 p-5 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Pending Queue</span>
             <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
@@ -129,13 +169,13 @@ export default function AdminDashboard({
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-900 dark:text-white">{reportedCount}</span>
+            <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{reportedCount}</span>
             <span className="text-xs text-slate-500 font-medium">awaiting crew</span>
           </div>
         </div>
 
         {/* Resolution Rate */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-slate-900/90 p-5 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Resolution Rate</span>
             <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -143,14 +183,14 @@ export default function AdminDashboard({
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">{resolutionRate}%</span>
+            <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">{resolutionRate}%</span>
             <span className="text-xs text-emerald-600/90 font-medium">({resolvedCount} resolved)</span>
           </div>
         </div>
       </div>
 
       {/* Control Bar */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-4 transition-colors">
+      <div className="bg-white dark:bg-slate-900/90 p-4 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-4 backdrop-blur-md transition-colors">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3">
           {/* Search Bar */}
           <div className="relative w-full md:w-80">
@@ -164,49 +204,43 @@ export default function AdminDashboard({
             />
           </div>
 
-          {/* Quick Actions (Reset Seed & Layout Switch) */}
-          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+          {/* Layout Switcher (Kanban vs Grid vs City GIS Map) */}
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl">
             <button
-              onClick={onSeedDemo}
-              title="Reset sample records for judges demo"
-              className="px-3.5 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
+              onClick={() => setViewMode('kanban')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === 'kanban' 
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs' 
+                  : 'text-slate-500 dark:text-slate-400'
+              }`}
             >
-              <DatabaseZap className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-              <span>Seed Demo Data</span>
+              <Columns3 className="w-3.5 h-3.5" />
+              <span>Kanban</span>
             </button>
 
             <button
-              onClick={onRefresh}
-              title="Refresh issues"
-              className="p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === 'grid' 
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs' 
+                  : 'text-slate-500 dark:text-slate-400'
+              }`}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Grid</span>
             </button>
 
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl">
-              <button
-                onClick={() => setViewMode('kanban')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  viewMode === 'kanban' 
-                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs' 
-                    : 'text-slate-500 dark:text-slate-400'
-                }`}
-              >
-                <Columns3 className="w-3.5 h-3.5" />
-                <span>Kanban</span>
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  viewMode === 'grid' 
-                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs' 
-                    : 'text-slate-500 dark:text-slate-400'
-                }`}
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span>Grid</span>
-              </button>
-            </div>
+            <button
+              onClick={() => setViewMode('map')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === 'map' 
+                  ? 'bg-blue-600 text-white shadow-xs' 
+                  : 'text-slate-500 dark:text-slate-400'
+              }`}
+            >
+              <Map className="w-3.5 h-3.5" />
+              <span>GIS Map</span>
+            </button>
           </div>
         </div>
 
@@ -244,8 +278,10 @@ export default function AdminDashboard({
         </div>
       </div>
 
-      {/* Kanban Board or Grid View */}
-      {viewMode === 'kanban' ? (
+      {/* Main Content Area based on View Mode */}
+      {viewMode === 'map' ? (
+        <CityMapRadar issues={filteredIssues} />
+      ) : viewMode === 'kanban' ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {STATUS_COLUMNS.map((col) => {
             const columnIssues = filteredIssues.filter((i) => i.status === col.id);
@@ -308,7 +344,7 @@ export default function AdminDashboard({
 }
 
 /**
- * Municipal Admin Kanban Issue Card
+ * Municipal Admin Kanban Issue Card with AI Protocol Highlight
  */
 function AdminIssueCard({ issue, onStatusChange }) {
   const urgencyCfg = URGENCY_CONFIG[issue.urgency] || URGENCY_CONFIG.Medium;
@@ -316,7 +352,7 @@ function AdminIssueCard({ issue, onStatusChange }) {
   const isCommunityEscalated = (issue.upvotes || 0) >= 5;
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md transition-all space-y-3">
+    <div className="bg-white dark:bg-slate-900/90 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-blue-500/40 dark:hover:border-blue-500/40 transition-all space-y-3">
       {/* Badges Header */}
       <div className="flex flex-wrap items-center justify-between gap-1.5">
         <div className="flex items-center gap-1.5">
@@ -344,14 +380,14 @@ function AdminIssueCard({ issue, onStatusChange }) {
           <img 
             src={issue.imageUrl} 
             alt={issue.title} 
-            className="w-full h-full object-cover" 
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
           />
         </div>
       )}
 
       {/* Title & Description */}
       <div>
-        <h4 className="font-bold text-slate-900 dark:text-white text-sm leading-snug">
+        <h4 className="font-extrabold text-slate-900 dark:text-white text-sm leading-snug">
           {issue.title}
         </h4>
         <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-2 leading-relaxed">
@@ -370,11 +406,11 @@ function AdminIssueCard({ issue, onStatusChange }) {
         </div>
       </div>
 
-      {/* AI Summary Highlight */}
+      {/* AI Dispatch Protocol (Staff-Only Intelligence) */}
       {issue.aiSummary && (
-        <div className="p-2.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 text-[11px] text-indigo-950 dark:text-indigo-300 leading-relaxed">
-          <span className="font-bold text-indigo-700 dark:text-indigo-400 flex items-center gap-1 mb-0.5">
-            <Sparkles className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+        <div className="p-3 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 text-[11px] text-indigo-950 dark:text-indigo-300 leading-relaxed shadow-xs">
+          <span className="font-extrabold text-indigo-700 dark:text-indigo-400 flex items-center gap-1 mb-1">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
             AI Dispatch Protocol:
           </span>
           {issue.aiSummary}

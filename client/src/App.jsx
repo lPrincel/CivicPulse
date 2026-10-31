@@ -186,7 +186,7 @@ export default function App() {
   // If user is not authenticated, render Login / Sign Up Page
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans transition-colors">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 bg-grid-pattern font-sans transition-colors">
         <AuthPage
           onAuthSuccess={handleAuthSuccess}
           isDark={isDark}
@@ -201,7 +201,7 @@ export default function App() {
   const isAdmin = user.role === 'admin';
 
   return (
-    <div className="min-h-screen bg-slate-100/70 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 bg-grid-pattern font-sans text-slate-900 dark:text-slate-100 transition-colors">
       {/* Role-Specific Navigation */}
       <Navbar
         user={user}
