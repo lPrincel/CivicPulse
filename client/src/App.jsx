@@ -238,7 +238,6 @@ export default function App() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateIssue}
-        onTriage={handleTriage}
         currentUser={user.name}
       />
 
