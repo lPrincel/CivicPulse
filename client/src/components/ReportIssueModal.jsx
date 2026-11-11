@@ -173,25 +173,25 @@ export default function ReportIssueModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
       <div 
-        className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[92vh] transition-colors"
+        className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[92vh] transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md">
-              <Sparkles className="w-4 h-4" />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+              <Sparkles className="w-4.5 h-4.5" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-base">Report Civic Hazard</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Powered by Gemini AI with Smart Duplicate Prevention</p>
+              <h3 className="font-extrabold text-slate-900 dark:text-white text-base tracking-tight">Report Civic Hazard</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Powered by Gemini AI · Smart Duplicate Prevention</p>
             </div>
           </div>
           <button 
             onClick={handleClose}
-            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -200,15 +200,16 @@ export default function ReportIssueModal({
         {/* DUPLICATE INTERCEPTOR SCREEN */}
         {detectedDuplicate ? (
           <div className="p-6 space-y-5 animate-in fade-in zoom-in duration-200 overflow-y-auto">
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
+            {/* Warning Banner */}
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-amber-900 dark:text-amber-300">
+                <h4 className="text-sm font-extrabold text-amber-900 dark:text-amber-300">
                   Similar Incident Already Reported Nearby!
                 </h4>
-                <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5 leading-relaxed">
+                <p className="text-xs text-amber-700 dark:text-amber-400 mt-1 leading-relaxed">
                   A citizen has already logged a matching hazard near this location. Submitting another ticket creates duplicate backlogs for municipal crews.
                 </p>
               </div>
@@ -221,22 +222,22 @@ export default function ReportIssueModal({
                   <img 
                     src={detectedDuplicate.imageUrl} 
                     alt="Existing hazard" 
-                    className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs" 
+                    className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm" 
                   />
                 ) : (
                   <div className="w-16 h-16 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0 text-slate-400">
                     <ShieldAlert className="w-6 h-6" />
                   </div>
                 )}
-                <div className="space-y-1 flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400">
                       {detectedDuplicate.category}
                     </span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-500/20 text-red-600 dark:text-red-400">
                       {detectedDuplicate.urgency}
                     </span>
-                    <span className="text-xs text-slate-400">• {detectedDuplicate.status}</span>
+                    <span className="text-xs text-slate-400">· {detectedDuplicate.status}</span>
                   </div>
                   <h5 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">
                     {detectedDuplicate.title}
@@ -258,12 +259,12 @@ export default function ReportIssueModal({
             </div>
 
             {/* Smart Tip */}
-            <div className="text-xs text-slate-600 dark:text-slate-400 bg-blue-500/5 border border-blue-500/20 rounded-2xl p-3.5 leading-relaxed">
-              💡 <strong>Why Echoing Works Better:</strong> When multiple citizens echo the same hazard, CivicPulse automatically escalates its urgency (5+ echoes $\rightarrow$ High, 10+ echoes $\rightarrow$ Emergency), putting it at the top of City Hall's dispatch queue!
+            <div className="text-xs text-slate-600 dark:text-slate-400 bg-blue-500/5 border border-blue-500/15 rounded-2xl p-4 leading-relaxed">
+              💡 <strong>Why Echoing Works Better:</strong> When multiple citizens echo the same hazard, CivicPulse automatically escalates its urgency (5+ echoes → High, 10+ echoes → Emergency), putting it at the top of City Hall's dispatch queue!
             </div>
 
             {/* Decision Buttons */}
-            <div className="space-y-2.5 pt-1">
+            <div className="space-y-2.5">
               <button
                 type="button"
                 onClick={() => {
@@ -272,7 +273,7 @@ export default function ReportIssueModal({
                   }
                   handleClose();
                 }}
-                className="w-full py-3.5 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all cursor-pointer"
+                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all cursor-pointer"
               >
                 <ThumbsUp className="w-4 h-4" />
                 <span>Echo Existing Hazard (+1 Community Priority)</span>
@@ -284,7 +285,7 @@ export default function ReportIssueModal({
                   setDetectedDuplicate(null);
                   executeSubmit();
                 }}
-                className="w-full py-2.5 px-4 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-xs transition-colors cursor-pointer text-center"
+                className="w-full py-2.5 px-4 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-xs transition-all cursor-pointer text-center"
               >
                 No, this is a separate hazard (Submit as New Ticket)
               </button>
@@ -292,16 +293,18 @@ export default function ReportIssueModal({
           </div>
         ) : (
           /* STANDARD REPORT FORM */
-          <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4.5">
+          <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5">
             {/* User Tag */}
-            <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-xs text-slate-600 dark:text-slate-400">
+            <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 text-xs text-slate-600 dark:text-slate-400">
               <span>Reporting as: <strong className="text-slate-900 dark:text-white">{currentUser}</strong></span>
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium">Verified Citizen</span>
+              <span className="px-2.5 py-0.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold border border-blue-500/15">
+                Verified Citizen
+              </span>
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
                 What hazard or issue did you notice? <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -310,24 +313,29 @@ export default function ReportIssueModal({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g. Deep pothole damaging tires at expressway exit ramp, or sparking power transformer near school..."
-                className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all resize-none placeholder-slate-400"
+                className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-500/50 transition-all resize-none placeholder-slate-400"
               />
-              <p className="text-[11px] text-slate-400 mt-1">
-                ✨ Gemini AI will categorize the department & evaluate urgency automatically.
+              <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-indigo-400" />
+                Gemini AI will categorize the department & evaluate urgency automatically.
               </p>
             </div>
 
             {/* Location */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                   Location / Address <span className="text-red-500">*</span>
                 </label>
                 <button
                   type="button"
                   onClick={handleGetLocation}
                   disabled={isGettingLocation}
-                  className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  className={`text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-all px-3 py-1.5 rounded-xl ${
+                    isGettingLocation
+                      ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                      : 'bg-blue-500/10 hover:bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                  }`}
                 >
                   {isGettingLocation ? (
                     <>
@@ -336,7 +344,7 @@ export default function ReportIssueModal({
                     </>
                   ) : (
                     <>
-                      <MapPin className="w-3.5 h-3.5 text-blue-500" />
+                      <MapPin className="w-3.5 h-3.5" />
                       <span>Get Current GPS</span>
                     </>
                   )}
@@ -350,14 +358,14 @@ export default function ReportIssueModal({
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g. 880 North Commercial Blvd (or click Get GPS)"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all placeholder-slate-400"
+                  className="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-500/50 transition-all placeholder-slate-400"
                 />
               </div>
             </div>
 
             {/* Photo Attachment */}
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                 Attach Hazard Photo
               </label>
 
@@ -374,37 +382,39 @@ export default function ReportIssueModal({
                   <img 
                     src={imageUrl} 
                     alt="Hazard preview" 
-                    className="w-full h-36 object-cover" 
+                    className="w-full h-40 object-cover" 
                   />
                   <button
                     type="button"
                     onClick={() => setImageUrl('')}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-900/80 text-white hover:bg-red-600 transition-colors cursor-pointer"
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-900/80 text-white hover:bg-red-600 transition-colors cursor-pointer shadow-md"
                     title="Remove photo"
                   >
                     <X className="w-4 h-4" />
                   </button>
-                  <div className="absolute bottom-2 left-2 px-2.5 py-0.5 rounded-lg bg-black/60 text-white text-[11px] font-medium backdrop-blur-xs">
-                    ✓ Photo attached
+                  <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-black/60 text-white text-[11px] font-semibold backdrop-blur-sm flex items-center gap-1.5">
+                    <Check className="w-3 h-3 text-emerald-400" />
+                    Photo attached
                   </div>
                 </div>
               ) : (
-                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-dashed border-slate-200 dark:border-slate-700 flex flex-col gap-2.5">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-blue-400/40 dark:hover:border-blue-500/30 transition-all flex flex-col gap-3">
+                  {/* Upload area */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 shadow-xs">
-                        <Camera className="w-4 h-4 text-slate-400" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-sm">
+                        <Camera className="w-5 h-5 text-slate-400" />
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">Upload or Pick Sample</p>
-                        <p className="text-[10px] text-slate-400">Helps municipal crew assess severity</p>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Upload or Pick Sample</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Helps municipal crew assess severity</p>
                       </div>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-blue-400/50 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       <Upload className="w-3.5 h-3.5 text-blue-600" />
                       <span>Upload Image</span>
@@ -412,14 +422,14 @@ export default function ReportIssueModal({
                   </div>
 
                   {/* Quick Presets */}
-                  <div className="flex items-center gap-1.5 pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60 text-[11px]">
-                    <span className="text-slate-400">Quick Samples:</span>
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-[11px]">
+                    <span className="text-slate-400 shrink-0">Quick Samples:</span>
                     {PRESET_SAMPLE_PHOTOS.map((sample) => (
                       <button
                         key={sample.label}
                         type="button"
                         onClick={() => setImageUrl(sample.url)}
-                        className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border border-slate-200 dark:border-slate-700 hover:border-blue-400 transition-colors text-[10px] font-semibold cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border border-slate-200 dark:border-slate-700 hover:border-blue-400/50 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all text-[10px] font-bold cursor-pointer"
                       >
                         + {sample.label}
                       </button>
@@ -430,18 +440,18 @@ export default function ReportIssueModal({
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3 pt-3">
+            <div className="flex items-center gap-3 pt-1">
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex-1 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="flex-1 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !description.trim() || !location.trim()}
-                className="flex-1 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-2 flex-grow py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
@@ -462,4 +472,3 @@ export default function ReportIssueModal({
     </div>
   );
 }
-
