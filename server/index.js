@@ -27,7 +27,7 @@ app.use((req, res, next) => {
 });
 
 // Health check endpoint (for deployment monitoring on Render/Railway)
-app.get('/api/health', (req, res) => {
+app.get(['/', '/health', '/api/health'], (req, res) => {
   res.status(200).json({
     status: 'online',
     timestamp: new Date().toISOString(),

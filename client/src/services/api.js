@@ -1,11 +1,19 @@
 import axios from 'axios';
 import { initialMockIssues } from '../data/mockIssues';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+// Base API URL with environment variable support for Vercel/Render deployment
+const getBaseApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (!envUrl) return 'http://localhost:5000/api';
+  const clean = envUrl.trim().replace(/\/+$/, '');
+  return clean.endsWith('/api') ? clean : `${clean}/api`;
+};
+
+const API_BASE_URL = getBaseApiUrl();
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 8000,
+  timeout: 45000, // 45s timeout to handle Render free-tier cold starts smoothly
   headers: {
     'Content-Type': 'application/json'
   }
